@@ -4,4 +4,4 @@ ZeroMat is a cold-start solver for recommender systems invented by Hao Wang and 
 
 The paper can be found here : https://arxiv.org/abs/2112.03084
 
-Please modify Line 372 for the input location of MovieLens 1M dataset's rating values.
+Please modify Line 372 for the input location of MovieLens 1M dataset's rating values if necessary.
