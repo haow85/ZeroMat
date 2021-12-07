@@ -11,19 +11,6 @@ from surprise.model_selection import KFold
 from math import log, exp
 import matplotlib.pyplot as plt
 
-def baseline(trainset, testset):
-
-#    file_path = os.path.expanduser(input_file)
-#    reader = Reader(line_format='user item rating', sep='\t')
-
-#    data = Dataset.load_from_file(file_path, reader=reader)
-#    kf = KFold(n_splits=3)
-    algo = SVD()
-    algo.fit(Trainset(trainset))
-    predictions = algo.test(testset)
-
-    accuracy.rmse(predictions, verbose=True)
-
 def compute_user_rank(user_item_ratings):
 
     user_rank = {}
