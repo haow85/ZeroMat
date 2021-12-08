@@ -9,5 +9,5 @@ Please modify Line 372 for the input location of MovieLens 1M dataset's rating v
 ZeroMat is really important because:
     
     1. It is the first algorithm that solves cold start problem in recommender systems with no input data.
-    2. The experiemnts on the paper demonstrates that human cultural tastes (or, user item rating data) follows a predictable distribution after evolution for sometime.
+    2. The experiemnts on the paper demonstrate that human cultural tastes (or, user item rating data) follows a predictable distribution after evolution for sometime.
     3. Because of observations in 2, our public culture is pre-determined. Human cultural evolution converges to Zipf's distribution and the details have no relation with history.
