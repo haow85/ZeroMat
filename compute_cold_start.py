@@ -3,11 +3,7 @@ import os
 from operator import itemgetter
 from numpy import random, zeros
 import numpy as np
-from scipy.spatial.distance import cosine
 from scipy.linalg import norm
-from sklearn.linear_model import LinearRegression, Lasso
-from surprise import Dataset, Trainset, Reader, SVD, accuracy
-from surprise.model_selection import KFold
 from math import log, exp
 import matplotlib.pyplot as plt
 
@@ -66,29 +62,31 @@ def compute_cold_start_0(train_data_dict, test_data_dict, item_rank_dict, eta):
     user_features = {}
     item_features = {}
 
-    for uid_id in user_id_list:
-
-        user_id = user_repo[int(uid_id)]
-            
-        if train_data_dict[user_id].__len__() < 1:
-            continue
-
-        item_id_list = list(train_data_dict[user_id].keys())
-        sampled_item_id_list = random.random_sample(10) * item_id_list.__len__()
-
-        item_repo = train_data_dict[user_id].keys()
-
-        for iid in sampled_item_id_list:
-
-            item_id = item_id_list[int(iid)]
-
-            R_v = train_data_dict[user_id][item_id_list[int(iid)]]
+    for iter_no in range(0, 30):
     
-            u[user_id] += eta*v[item_id]/np.dot(u[user_id], v[item_id]) - 2*eta*u[user_id]
-            v[item_id] += eta*u[user_id]/np.dot(u[user_id], v[item_id]) - 2*eta*v[item_id]
+        for uid_id in user_id_list:
 
-            user_features[user_id] = u[user_id]
-            item_features[item_id] = v[item_id]
+            user_id = user_repo[int(uid_id)]
+            
+            if train_data_dict[user_id].__len__() < 1:
+                continue
+
+            item_id_list = list(train_data_dict[user_id].keys())
+            sampled_item_id_list = random.random_sample(10) * item_id_list.__len__()
+
+            item_repo = train_data_dict[user_id].keys()
+
+            for iid in sampled_item_id_list:
+
+                item_id = item_id_list[int(iid)]
+
+                R_v = train_data_dict[user_id][item_id_list[int(iid)]]
+    
+                u[user_id] += eta*v[item_id]/np.dot(u[user_id], v[item_id]) - 2*eta*u[user_id]
+                v[item_id] += eta*u[user_id]/np.dot(u[user_id], v[item_id]) - 2*eta*v[item_id]
+
+                user_features[user_id] = u[user_id]
+                item_features[item_id] = v[item_id]
 
     pr_dict = {}
     pr_list = []
@@ -133,77 +131,31 @@ def compute_cold_start_0(train_data_dict, test_data_dict, item_rank_dict, eta):
         iter_id += 1
 
 
-    DMF = 0.0
+    DME = 0.0
     for rank_val in rank_list:
-        DMF += log(rank_val*1.0/rank_list[-1])
-    DMF = 1 + rank_list.__len__()/DMF
+        DME += log(rank_val*1.0/rank_list[-1])
+    DME = 1 + rank_list.__len__()/DME
 
-    return (mae/total_no, DMF)
+    return (mae/total_no, DME)
 
-def compute_cold_start_1(train_data_dict, test_data_dict, item_rank_dict, eta):
-
-    user_len = max(train_data_dict.keys()) + 1
-    item_len = max(item_rank_dict.keys()) + 1
-
-    u = random.random([user_len, 30])
-    v = random.random([item_len, 30])
-
-    user_id_list = random.random_sample(100) * train_data_dict.keys().__len__()
-    user_repo = list(train_data_dict.keys())
-
-    user_features = {}
-    item_features = {}
-
-    for uid_id in user_id_list:
-
-        user_id = user_repo[int(uid_id)]
-            
-        if train_data_dict[user_id].__len__() < 1:
-            continue
-
-        item_id_list = list(train_data_dict[user_id].keys())
-        sampled_item_id_list = random.random_sample(10) * item_id_list.__len__()
-
-        item_repo = train_data_dict[user_id].keys()
-
-        for iid in sampled_item_id_list:
-
-            item_id = item_id_list[int(iid)]
-
-            R_v = train_data_dict[user_id][item_id_list[int(iid)]]
-    
-            u[user_id] += eta*v[item_id]/np.dot(u[user_id], v[item_id]) - 2*eta*u[user_id]
-            v[item_id] += eta*u[user_id]/np.dot(u[user_id], v[item_id]) - 2*eta*v[item_id]
-
-            user_features[user_id] = u[user_id]
-            item_features[item_id] = v[item_id]
+def compute_cold_start_1(test_data_dict, eta):
 
     pr_dict = {}
-    pr_list = []
 
     mae = 0.0
     total_no = 0.0
 
-    R_max = -1.0
-    for user_id in test_data_dict.keys():
-        for item_id in test_data_dict[user_id]:
-            if user_id in user_features and item_id in item_features:
-                R_v = np.dot(u[user_id], v[item_id])
-                if R_v > R_max :
-                    R_max = R_v
- 
     FILE = open('test_data_dict.txt', 'w')
     for user_id in test_data_dict.keys():
         for item_id in test_data_dict[user_id]:
-            if user_id in user_features and item_id in item_features:
-                #R_v = 5.0 * (np.dot(u[user_id], v[item_id])/R_max)
-                R_v = 5.0 * random.random()
-                pr_dict[item_id] = pr_dict.get(item_id, 0)+1
-                FILE.write('%s\n' % R_v)
-                mae += abs(R_v - test_data_dict[user_id][item_id])
-                total_no += 1
+            R_v = 5.0 * random.random()
+            pr_dict[item_id] = pr_dict.get(item_id, 0)+1
+            FILE.write('%s\n' % R_v)
+            mae += abs(R_v - test_data_dict[user_id][item_id])
+            total_no += 1
     FILE.close()
 
+    pr_list = []
     for item_id in pr_dict.keys():
         pr_list.append((item_id, pr_dict[item_id]))
 
@@ -220,14 +172,14 @@ def compute_cold_start_1(train_data_dict, test_data_dict, item_rank_dict, eta):
         rank_id += 1
         iter_id += 1
 
-    DMF = 0.0
+    DME = 0.0
     for rank_val in rank_list:
-        DMF += log(rank_val*1.0/rank_list[-1])
-    DMF = 1 + rank_list.__len__()/DMF
+        DME += log(rank_val*1.0/rank_list[-1])
+    DME = 1 + rank_list.__len__()/DME
 
-    print('DME:%s' % DMF)
+    print('DME:%s' % DME)
 
-    return (mae/total_no, DMF)
+    return (mae/total_no, DME)
 
 def compute_mf(train_data_dict, test_data_dict, item_rank_dict, eta):
 
@@ -243,29 +195,31 @@ def compute_mf(train_data_dict, test_data_dict, item_rank_dict, eta):
     user_features = {}
     item_features = {}
 
-    for uid_id in user_id_list:
-
-        user_id = user_repo[int(uid_id)]
-            
-        if train_data_dict[user_id].__len__() < 1:
-            continue
-
-        item_id_list = list(train_data_dict[user_id].keys())
-        sampled_item_id_list = random.random_sample(10) * item_id_list.__len__()
-
-        item_repo = train_data_dict[user_id].keys()
-
-        for iid in sampled_item_id_list:
-
-            item_id = item_id_list[int(iid)]
-
-            R_v = train_data_dict[user_id][item_id_list[int(iid)]]
+    for iter in range(0, 30):
     
-            u[user_id] += eta*2*(R_v - np.dot(u[user_id], v[item_id])) * v[item_id]
-            v[item_id] += eta*2*(R_v - np.dot(u[user_id], v[item_id])) * u[user_id]
+        for uid_id in user_id_list:
 
-            user_features[user_id] = u[user_id]
-            item_features[item_id] = v[item_id]
+            user_id = user_repo[int(uid_id)]
+            
+            if train_data_dict[user_id].__len__() < 1:
+                continue
+
+            item_id_list = list(train_data_dict[user_id].keys())
+            sampled_item_id_list = random.random_sample(10) * item_id_list.__len__()
+
+            item_repo = train_data_dict[user_id].keys()
+
+            for iid in sampled_item_id_list:
+
+                item_id = item_id_list[int(iid)]
+
+                R_v = train_data_dict[user_id][item_id_list[int(iid)]]
+    
+                u[user_id] += eta*2*(R_v - np.dot(u[user_id], v[item_id])) * v[item_id]
+                v[item_id] += eta*2*(R_v - np.dot(u[user_id], v[item_id])) * u[user_id]
+
+                user_features[user_id] = u[user_id]
+                item_features[item_id] = v[item_id]
 
     pr_dict = {}
     pr_list = []
@@ -300,15 +254,15 @@ def compute_mf(train_data_dict, test_data_dict, item_rank_dict, eta):
         rank_id += 1
         iter_id += 1
 
-    DMF = 0.0
+    DME = 0.0
     for rank_val in rank_list:
         #print('%s, %s\n' %(rank_val, rank_list[-1]))
-        DMF += log(rank_val*1.0/rank_list[-1])
-    DMF = 1 + rank_list.__len__()/DMF
+        DME += log(rank_val*1.0/rank_list[-1])
+    DME = 1 + rank_list.__len__()/DME
 
-    print('DMF:%s' % DMF)
+    print('DME:%s' % DME)
 
-    return (mae/total_no, DMF)
+    return (mae/total_no, DME)
 
 def predict_mf(test_data_dict, u, v):
 
@@ -356,7 +310,7 @@ def predict_mf(test_data_dict, u, v):
 
 if __name__ == '__main__':
 
-    input_file = 'ml-1m/ratings.dat'
+    input_file = 'ml-1m/ratings_new.dat'
     #input_file = 'ml-latest-small/ratings.csv'
 
     user_item_ratings = {}
@@ -366,7 +320,7 @@ if __name__ == '__main__':
 
     with open(input_file, 'r') as FILE:
         for line in FILE:
-            user_pair = line.split('::')
+            user_pair = line.split(',')
             user_id = user_pair[0]
             item_id = user_pair[1]
             user_set.add(user_id)
@@ -386,7 +340,7 @@ if __name__ == '__main__':
 
     with open(input_file, 'r') as FILE:
         for line in FILE:
-            user_pair = line.split('::')
+            user_pair = line.split(',')
             user_id = user_pair[0]
             item_id = user_pair[1]
             rating = float(user_pair[2])
@@ -438,7 +392,7 @@ if __name__ == '__main__':
     MF_list = []
     for eta in eta_list: 
         (mae_0, ZMF_0) = compute_cold_start_0(train_set_dict, test_set_dict, item_rank_dict, eta) 
-        (mae_1, ZMF_1) = compute_cold_start_1(train_set_dict, test_set_dict, item_rank_dict, eta)
+        (mae_1, ZMF_1) = compute_cold_start_1(test_set_dict, eta)
         (mae, MF) = compute_mf(train_set_dict, test_set_dict, item_rank_dict, eta)
         print('MAE comparison (ZeroMat, Random Placement, Classic MF): %s %s %s' % (mae_0, mae_1, mae)) 
         mae_0_list.append(mae_0)
