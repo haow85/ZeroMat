@@ -15,6 +15,7 @@ ZeroMat is really important because:
 To execute ZeroMat, run the following commands :
 
 python3 process_data.py
+
 python3 compute_cold_start.py
 
 A sample plot of results would look like the following :
