@@ -369,7 +369,7 @@ if __name__ == '__main__':
             for x in range(-2, 0):
                 test_data_list.append((user_id, item_list[x]))
                 test_set_list.append((user_id, item_list[x], user_item_ratings[user_id][item_list[x]]))
-                test_set_dict[user_id][item_id] = user_item_ratings[user_id][item_list[x]]
+                test_set_dict[user_id][item_list[x]] = user_item_ratings[user_id][item_list[x]]
 
     with open('train_set.txt', 'w') as FILE:
         for data_rec in train_set_list:
